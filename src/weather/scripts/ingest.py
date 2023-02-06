@@ -85,7 +85,7 @@ def load_stats():
         extract(year from date),
         avg(min_temp),
         avg(max_temp),
-        sum(precipitation) / 1000
+        sum(precipitation) / 10
     from
         weather.daily_weather
     group by
@@ -99,6 +99,7 @@ def load_stats():
     """
 
     conn = create_connection()
+    conn.autocommit = True
     try:
         cursor = conn.cursor()
         cursor.execute(sql)
