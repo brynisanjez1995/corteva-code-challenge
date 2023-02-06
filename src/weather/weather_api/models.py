@@ -2,11 +2,11 @@ from django.db import models
 
 
 class DailyWeather(models.Model):
-    station_id = models.CharField(max_length=16, null=False)
-    date = models.DateField(null=False)
-    min_temp = models.DecimalField(max_digits=8, decimal_places=2)
-    max_temp = models.DecimalField(max_digits=8, decimal_places=2)
-    precipitation = models.DecimalField(max_digits=8, decimal_places=2)
+    station_id = models.CharField(max_length=16)
+    date = models.DateField()
+    min_temp = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    max_temp = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    precipitation = models.DecimalField(max_digits=8, decimal_places=2, null=True)
 
     class Meta:
         db_table = '"weather"."daily_weather"'
@@ -18,9 +18,9 @@ class DailyWeather(models.Model):
 class YearlyWeatherStats(models.Model):
     station_id = models.CharField(max_length=16, null=False)
     year = models.IntegerField(null=False)
-    avg_min_temp = models.DecimalField(max_digits=8, decimal_places=2)
-    avg_max_temp = models.DecimalField(max_digits=8, decimal_places=2)
-    total_precipitation = models.DecimalField(max_digits=8, decimal_places=2)
+    avg_min_temp = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    avg_max_temp = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    total_precipitation = models.DecimalField(max_digits=8, decimal_places=2, null=True)
 
     class Meta:
         db_table = '"weather"."yearly_weather_stats"'
