@@ -5,27 +5,47 @@ and exposes REST API endpoints to search and view weather data and summary.
 
 ## Installation
 
+- The app requires a PostgreSQL instance to connect to. Setup the database (e.g. using [docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/))
+- Create `weather` schema in the database
 - Set following ENV vars for PostgresSQL connection
     - `DATABASE_NAME`
     - `DATABASE_USER`
     - `DATABASE_PASSWORD` (TODO - encrypt)
     - `DATABASE_HOST`
     - `DATABASE_PORT`
-- Create `weather` schema in the PostgreSQL database
 - Install dependencies: 
     - `cd src/weather`
     - `poetry install`
-- Run migrations:
+- Run DB migrations:
     - `python manage.py makemigrations`
     - `python manage.py migrate`
-- Run server
+- Run the API server:
     - `python manage.py runserver`
-- Ingest data using
+- Ingest data:
+    - Set the following ENV vars for input and output file dirs
+      - `INPUT_PATH`
+      - `PROCESSED_PATH`
     - `src/weather/scripts/ingest.py`
 - Access endpoints:
     - `http://{host}:{port}/api/weather`
     - `http://{host}:{port}/api/weather/stats`
     - `http://{host}:{port}` (swagger endpoint)
+
+## Test
+- `cd src/weather`
+- `python manage.py test`
+
+## Deployment
+
+Ideally, for production deployment to a cloud provider like `AWS`, we'll package the application into a docker image
+and spawn a new EC2 instance to deploy the app. Overall, the following steps would be needed:
+- Create a PostgreSQL instance using `Amazon RDS`
+- Create a `Dockerfile` with instructions to build the application image
+- Upload the image to `Amazon Elastic Container Registry`
+- Spawn an `EC2` instance to deploy the image
+- Configre load balancer to manage traffic across instances
+- Use Amazon cloudwatch for monitoring
+- Modify the ingestion script to read files from `Amazon S3` and schedule it using `AWS Lambda`
 
 
 ## Data Model
@@ -79,13 +99,13 @@ The `src/weather/scripts/ingest.py` handles ingestion of data into the `daily_we
 It exposes the following endpoints
 - `/api/weather` (List Weather)
 - `/api/weather/stats` (Summarize Weather by Year)
+- `/` - swagger doc
 
 1. `/api/weather`
     - It allows following query params
         - `station_id`
         - `date`
     - Pagination can be achieved by using following query params
-        - `page`
         - `offset`
         - `limit`
     - The response contains a JSON list of `weather` data. E.g.
@@ -113,7 +133,6 @@ It exposes the following endpoints
         - `station_id`
         - `year`
     - Pagination can be achieved by using following query params
-        - `page`
         - `offset`
         - `limit`
     - The response contains a JSON list of `weather` summary data per year. E.g.
