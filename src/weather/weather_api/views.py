@@ -4,6 +4,10 @@ from .serializers import DailyWeatherSerializer, YearlyWeatherStatsSerializer
 
 
 class DailyWeatherList(generics.ListAPIView):
+    """
+    API view that handles GET requests to search weather data
+    """
+
     serializer_class = DailyWeatherSerializer
 
     def get_queryset(self):
@@ -20,6 +24,10 @@ class DailyWeatherList(generics.ListAPIView):
 
 
 class YearlyWeatherStatsList(generics.ListAPIView):
+    """
+    API view that handles GET requests to search weather summary data
+    """
+
     serializer_class = YearlyWeatherStatsSerializer
 
     def get_queryset(self):
