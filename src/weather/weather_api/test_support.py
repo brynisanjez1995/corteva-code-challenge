@@ -18,6 +18,7 @@ y3 = YearlyWeatherStats(id=3, station_id='station_2', year=2021, avg_min_temp='2
 y4 = YearlyWeatherStats(id=4, station_id='station_2', year=2022, avg_min_temp='20.20', avg_max_temp='32.40',
                         total_precipitation='50.00')
 
+
 # Utility functions to convert to json
 
 def weather_as_json(w):

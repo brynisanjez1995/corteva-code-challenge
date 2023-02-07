@@ -1,5 +1,6 @@
-from .models import DailyWeather, YearlyWeatherStats
 from rest_framework import generics
+
+from .models import DailyWeather, YearlyWeatherStats
 from .serializers import DailyWeatherSerializer, YearlyWeatherStatsSerializer
 
 

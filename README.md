@@ -33,6 +33,7 @@ and exposes REST API endpoints to search and view weather data and summary.
 
 ## Test
 - `cd src/weather`
+- `python manage.py makemigrations`
 - `python manage.py test`
 
 ## Deployment

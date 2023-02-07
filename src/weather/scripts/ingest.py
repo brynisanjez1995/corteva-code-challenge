@@ -1,14 +1,17 @@
 import csv
-import psycopg2
-import environ
-import os
-import logging
 import datetime
+import logging
+import os
 
+import environ
+import psycopg2
+
+# Init env vars - needed for reading database credentials from env
 env = environ.Env()
 environ.Env.read_env()
 SECRET_KEY = env("SECRET_KEY")
 
+# Configure logger
 logging.basicConfig(filename="logs/ingestion.log", level=logging.INFO,
                     format='%(asctime)s.%(msecs)03d %(levelname)s {%(module)s} [%(funcName)s] %(message)s',
                     datefmt='%Y-%m-%d,%H:%M:%S')
@@ -16,6 +19,9 @@ logger = logging.getLogger("ingest")
 
 
 def create_connection():
+    """
+    Creates DB connection using properties defined in env vars.
+    """
     return psycopg2.connect(database=env("DATABASE_NAME"),
                             user=env("DATABASE_USER"), password=env("DATABASE_PASSWORD"),
                             host=env("DATABASE_HOST"), port=env("DATABASE_PORT")
@@ -23,6 +29,21 @@ def create_connection():
 
 
 def load_files(input_dir, processed_dir):
+    """
+    Loads all files from the input directory into postgres `daily_weather` table.
+
+    Successfully processed files are moved into the `processed_dir`.
+    - Input files are not expected to have a header
+    - Input files are tab separated files
+    - The file name is considered the station_id
+    - The fields in each record are in order:
+      - date
+      - min_temp
+      - max_temp
+      - precipitation
+    - In case of failure, the error is raised, and the input files can be fixed and re-run safely.
+    - In case it encounters duplicate records for `station_id + date`, the record is replaced in db.
+    """
     conn = create_connection()
     try:
         conn.autocommit = True
@@ -41,6 +62,10 @@ def load_files(input_dir, processed_dir):
 
 
 def build_insert_sql(values):
+    """
+    Given a list of value records, it builds the full insert sql.
+    """
+
     sql_pre = "insert into weather.daily_weather " \
               "(station_id, date, min_temp, max_temp, precipitation) " \
               "values "
@@ -54,6 +79,20 @@ def build_insert_sql(values):
 
 
 def load_file(cursor, file, station_id):
+    """
+    Loads one file into `daily_weather` table.
+
+    - Input file is not expected to have a header
+    - Input file is tab separated
+    - The fields in each record are in order:
+      - date
+      - min_temp
+      - max_temp
+      - precipitation
+    - In case of failure, the error is raised.
+    - In case it encounters duplicate records for `station_id + date`, the record is replaced in db.
+    """
+
     values = []
 
     with open(file, mode='r') as f:
@@ -71,7 +110,12 @@ def load_file(cursor, file, station_id):
     logger.debug(f"Using sql {sql}")
     cursor.execute(sql)
 
+
 def load_stats():
+    """
+    Reads the `daily_weather` table and populates the `yearly_weather_stats` table.
+    """
+
     sql = """
     insert
         into
@@ -107,8 +151,17 @@ def load_stats():
         conn.close()
 
 
-
 def main():
+    """
+    Loads weather data from input files and populates `daily_weather` and `yearly_weather_stats` tables.
+
+    - Environment variable INPUT_PATH as the input location
+    - Environment variable PROCESSED_PATH as the archive location for successful files
+    - Both INPUT_PATH and PROCESSED_PATH should exist
+    - Logs are written to `{BASE_DIR}/logs/ingestion.log`
+    - In case of failure, files can be safely rerun. Duplicate records are updated.
+    """
+
     input_path = env("INPUT_PATH")
     processed_path = env("PROCESSED_PATH")
 
@@ -127,6 +180,7 @@ def main():
     completion_time = datetime.datetime.now()
     elapsed_time = (completion_time - start_time).total_seconds()
     logger.info(f"Updated stats in {elapsed_time} second(s)")
+
 
 if __name__ == "__main__":
     main()
